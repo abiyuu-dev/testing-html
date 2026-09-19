@@ -1,438 +1,111 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Game UI Preview</title>
-<style>
-  :root {
-    --accent: rgb(180, 0, 255);
-  }
-
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    background: #050505;
-    background-image: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.03), transparent 40%);
-    font-family: "Segoe UI", Roboto, Arial, sans-serif;
-    color: #e0e0e0;
-    overflow: hidden;
-  }
-
-  .backdrop-hint {
-    position: fixed;
-    top: 16px;
-    left: 16px;
-    font-size: 12px;
-    color: #555;
-  }
-
-  .main-frame {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 500px;
-    height: 350px;
-    background: rgba(8, 8, 8, 0.9);
-    border-radius: 8px;
-    box-shadow: 8px 10px 24px rgba(0,0,0,0.5);
-    border: 1px solid rgba(180, 0, 255, 0.5);
-    transform: translate(-50%, -50%) scale(0.85);
-    opacity: 0;
-    animation: pop-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-    user-select: none;
-  }
-
-  @keyframes pop-in {
-    to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-  }
-
-  .main-frame.closing {
-    transition: opacity 0.25s ease, transform 0.25s ease;
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.9);
-    pointer-events: none;
-  }
-
-  .titlebar {
-    height: 20px;
-    cursor: grab;
-  }
-  .titlebar:active { cursor: grabbing; }
-
-  .sidebar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 120px;
-    height: 100%;
-    background: rgba(5, 5, 5, 0.94);
-    border-radius: 8px 0 0 8px;
-  }
-
-  .logo {
-    height: 46px;
-    display: flex;
-    align-items: center;
-    padding-left: 15px;
-    font-weight: 700;
-    font-size: 12px;
-    color: #dcdcdc;
-    text-shadow: 0 0 6px rgba(180,0,255,0.3);
-  }
-
-  .accent-line {
-    position: absolute;
-    left: 0;
-    top: 80px;
-    width: 2px;
-    height: 40px;
-    background: var(--accent);
-    transition: top 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
-
-  .nav-btn {
-    display: block;
-    width: 100%;
-    height: 40px;
-    background: transparent;
-    border: none;
-    color: #646464;
-    font-weight: 700;
-    font-size: 12px;
-    text-align: left;
-    padding-left: 15px;
-    cursor: pointer;
-    transition: color 0.15s ease;
-    font-family: inherit;
-  }
-  .nav-btn.active { color: var(--accent); }
-  .nav-btn:hover { color: #fff; }
-
-  #btn-features { position: absolute; top: 80px; }
-  #btn-settings { position: absolute; top: 130px; }
-
-  .panel {
-    position: absolute;
-    left: 140px;
-    top: 20px;
-    width: 340px;
-    height: 310px;
-    background: rgba(15, 15, 15, 0.85);
-    border-radius: 6px;
-    padding: 10px 15px;
-    box-sizing: border-box;
-    display: none;
-  }
-  .panel.visible { display: block; animation: fade-in 0.28s ease; }
-
-  @keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  .panel-title {
-    color: var(--accent);
-    font-weight: 700;
-    font-size: 10px;
-    letter-spacing: 0.5px;
-    margin-bottom: 10px;
-  }
-
-  .row {
-    position: relative;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 5px;
-  }
-
-  .row-label {
-    color: #c8c8c8;
-    font-size: 12px;
-  }
-
-  .toggle {
-    width: 40px;
-    height: 20px;
-    border-radius: 10px;
-    background: #3c3c3c;
-    position: relative;
-    cursor: pointer;
-    transition: background 0.2s ease;
-    border: none;
-    flex-shrink: 0;
-  }
-  .toggle.on { background: var(--accent); }
-  .toggle .knob {
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: #fff;
-    transition: left 0.2s ease;
-  }
-  .toggle.on .knob { left: 22px; }
-
-  .cycle-btn {
-    min-width: 100px;
-    height: 22px;
-    border-radius: 4px;
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    font-weight: 700;
-    font-size: 11px;
-    cursor: pointer;
-    padding: 0 10px;
-  }
-  .cycle-btn:hover { filter: brightness(1.3); }
-
-  .bind-btn {
-    width: 100px;
-    height: 25px;
-    border-radius: 4px;
-    background: #282828;
-    color: #dcdcdc;
-    border: none;
-    font-size: 12px;
-    cursor: pointer;
-  }
-  .bind-btn:hover { background: #4b4b4b; }
-
-  .swatches { display: flex; gap: 5px; }
-  .swatch {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    border: none;
-    cursor: pointer;
-    transition: transform 0.15s ease, filter 0.15s ease;
-  }
-  .swatch:hover { transform: scale(1.3); filter: brightness(1.25); }
-
-  .divider {
-    height: 1px;
-    background: #3c3c3c;
-    margin: 15px 0;
-  }
-
-  .close-btn {
-    display: block;
-    width: 140px;
-    height: 30px;
-    margin: 10px auto 0;
-    border-radius: 6px;
-    background: rgb(200, 40, 40);
-    color: #fff;
-    border: none;
-    font-weight: 700;
-    font-size: 12px;
-    cursor: pointer;
-  }
-  .close-btn:hover { background: rgb(255, 60, 60); }
-
-  .debug-label {
-    position: absolute;
-    left: 15px;
-    bottom: 4px;
-    font-family: Consolas, monospace;
-    font-size: 9px;
-    color: rgb(255, 200, 60);
-  }
-
-  .reopen-btn {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    display: none;
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    padding: 10px 18px;
-    border-radius: 6px;
-    font-size: 13px;
-    cursor: pointer;
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glassmorrphism Sidebar</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 </head>
 <body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="fa-brands fa-apple"></i>
+            </div>
+            <nav class="menu">
+                <ul>
+                    <li class="active">
+                        <a href="#">
+                            <i class="fa-solid fa-house"></i>
+                            <span>Home</span>
+                        </a>
+                    </li>
 
-<div class="backdrop-hint">Tekan RightShift untuk buka atau tutup menu</div>
+                    <li>
+                        <a href="#">
+                            <i class="fa-solid fa-compass"></i>
+                            <span>Explore</span>
+                        </a>
+                    </li>
 
-<div class="main-frame" id="mainFrame">
-  <div class="sidebar">
-    <div class="titlebar" id="titlebar"></div>
-    <div class="logo">MyGame</div>
-    <div class="accent-line" id="accentLine"></div>
-    <button class="nav-btn active" id="btn-features">Features</button>
-    <button class="nav-btn" id="btn-settings">Settings</button>
-  </div>
+                    <li>
+                        <a href="#">
+                            <i class="fa-solid fa-chart-simple"></i>
+                            <span>Analytics</span>
+                        </a>
+                    </li>
 
-  <div class="panel visible" id="panel-features">
-    <div class="panel-title">MAIN FEATURES</div>
+                    <li>
+                        <a href="#">
+                            <i class="fa-solid fa-message"></i>
+                            <span>Message</span>
+                        </a>
+                    </li>
 
-    <div class="row">
-      <span class="row-label">Fitur Satu</span>
-      <button class="toggle" id="toggle-one"><span class="knob"></span></button>
+                    <li>
+                        <a href="#">
+                            <i class="fa-solid fa-folder"></i>
+                            <span>Projects</span>
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="#">
+                            <i class="fa-solid fa-bookmark"></i>
+                            <span>Bookmarks</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="profile">
+                <div class="avatar">
+                    <img src="./cihuy.jpg" alt="My Profile">
+                </div>
+                <div class="user-info">
+                    <h3>Abiyyu Ramadhan</h3>
+                    <p>Web Developer</p>
+                </div>
+            </div>
+        </aside>
+        <main class="content">
+            <header>
+                <h1>Welcome Back, Abiyyu</h1>
+                <p>Check out your project statistics for today</p>
+            </header>
+            <div class="card-container">
+                <div class="card">
+                    <div class="card-icon">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>12</h3>
+                        <p>Completed Tasks</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>5</h3>
+                        <p>Pending Tasks</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>7</h3>
+                        <p>Active Projects</p>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
-    <div class="row">
-      <span class="row-label">Fitur Dua</span>
-      <button class="toggle" id="toggle-two"><span class="knob"></span></button>
-    </div>
-    <div class="row">
-      <span class="row-label">Mode</span>
-      <button class="cycle-btn" id="cycle-mode">OPTION A</button>
-    </div>
-  </div>
-
-  <div class="panel" id="panel-settings">
-    <div class="panel-title">SETTINGS</div>
-
-    <div class="row">
-      <span class="row-label">Toggle Menu Key</span>
-      <button class="bind-btn" id="bind-key">RightShift</button>
-    </div>
-    <div class="row">
-      <span class="row-label">UI Accent Color</span>
-      <div class="swatches">
-        <button class="swatch" style="background: rgb(180,0,255)" data-color="180,0,255"></button>
-        <button class="swatch" style="background: rgb(0,255,100)" data-color="0,255,100"></button>
-        <button class="swatch" style="background: rgb(255,50,50)" data-color="255,50,50"></button>
-        <button class="swatch" style="background: rgb(50,150,255)" data-color="50,150,255"></button>
-      </div>
-    </div>
-
-    <div class="divider"></div>
-    <button class="close-btn" id="close-btn">CLOSE MENU</button>
-  </div>
-
-  <div class="debug-label" id="debugLabel">Status: idle</div>
-</div>
-
-<button class="reopen-btn" id="reopenBtn">Buka Menu</button>
-
-<script>
-  const mainFrame = document.getElementById('mainFrame');
-  const titlebar = document.getElementById('titlebar');
-  const reopenBtn = document.getElementById('reopenBtn');
-  const debugLabel = document.getElementById('debugLabel');
-
-  let toggleKey = 'ShiftRight';
-  let toggleKeyLabel = 'RightShift';
-  let isBinding = false;
-  let menuOpen = true;
-
-  function setDebug(text) {
-    debugLabel.textContent = 'Status: ' + text;
-  }
-
-  // Buka / tutup menu dengan tombol
-  document.addEventListener('keydown', (e) => {
-    if (isBinding) {
-      e.preventDefault();
-      toggleKey = e.code;
-      toggleKeyLabel = e.key.length === 1 ? e.key.toUpperCase() : e.key;
-      document.getElementById('bind-key').textContent = toggleKeyLabel;
-      isBinding = false;
-      return;
-    }
-    if (e.code === toggleKey) {
-      menuOpen = !menuOpen;
-      mainFrame.style.display = menuOpen ? 'block' : 'none';
-      reopenBtn.style.display = menuOpen ? 'none' : 'block';
-    }
-  });
-
-  // Geser panel dari titlebar
-  let dragging = false, offsetX = 0, offsetY = 0;
-  titlebar.addEventListener('mousedown', (e) => {
-    dragging = true;
-    const rect = mainFrame.getBoundingClientRect();
-    offsetX = e.clientX - rect.left;
-    offsetY = e.clientY - rect.top;
-    mainFrame.style.animation = 'none';
-  });
-  document.addEventListener('mousemove', (e) => {
-    if (!dragging) return;
-    mainFrame.style.left = (e.clientX - offsetX) + 'px';
-    mainFrame.style.top = (e.clientY - offsetY) + 'px';
-    mainFrame.style.transform = 'none';
-  });
-  document.addEventListener('mouseup', () => dragging = false);
-
-  // Ganti tab
-  const btnFeatures = document.getElementById('btn-features');
-  const btnSettings = document.getElementById('btn-settings');
-  const panelFeatures = document.getElementById('panel-features');
-  const panelSettings = document.getElementById('panel-settings');
-  const accentLine = document.getElementById('accentLine');
-
-  function switchTab(which) {
-    const toFeatures = which === 'features';
-    btnFeatures.classList.toggle('active', toFeatures);
-    btnSettings.classList.toggle('active', !toFeatures);
-    panelFeatures.classList.toggle('visible', toFeatures);
-    panelSettings.classList.toggle('visible', !toFeatures);
-    accentLine.style.top = toFeatures ? '80px' : '130px';
-  }
-  btnFeatures.addEventListener('click', () => switchTab('features'));
-  btnSettings.addEventListener('click', () => switchTab('settings'));
-
-  // Toggle switch generik. Ganti bagian onChange dengan fitur Anda sendiri.
-  function wireToggle(id, label) {
-    const el = document.getElementById(id);
-    let on = false;
-    el.addEventListener('click', () => {
-      on = !on;
-      el.classList.toggle('on', on);
-      setDebug(label + ' diubah ke ' + on);
-      // TODO: sambungkan ke fitur game Anda di sini
-    });
-  }
-  wireToggle('toggle-one', 'Fitur Satu');
-  wireToggle('toggle-two', 'Fitur Dua');
-
-  // Tombol siklus mode
-  const modes = ['OPTION A', 'OPTION B', 'OPTION C'];
-  let modeIndex = 0;
-  document.getElementById('cycle-mode').addEventListener('click', (e) => {
-    modeIndex = (modeIndex + 1) % modes.length;
-    e.target.textContent = modes[modeIndex];
-    setDebug('Mode diubah ke ' + modes[modeIndex]);
-    // TODO: sambungkan ke fitur game Anda di sini
-  });
-
-  // Rebind tombol
-  document.getElementById('bind-key').addEventListener('click', (e) => {
-    isBinding = true;
-    e.target.textContent = '...';
-  });
-
-  // Ganti warna aksen
-  document.querySelectorAll('.swatch').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      document.documentElement.style.setProperty('--accent', 'rgb(' + btn.dataset.color + ')');
-    });
-  });
-
-  // Tutup menu
-  document.getElementById('close-btn').addEventListener('click', () => {
-    mainFrame.classList.add('closing');
-    setTimeout(() => { mainFrame.style.display = 'none'; }, 250);
-  });
-
-  reopenBtn.addEventListener('click', () => {
-    mainFrame.classList.remove('closing');
-    mainFrame.style.display = 'block';
-    reopenBtn.style.display = 'none';
-    menuOpen = true;
-  });
-</script>
-
 </body>
+<script src="script.js"></script>
 </html>
